@@ -1,0 +1,3 @@
+[submodule "UserInterfaceExample"]
+	path = UserInterfaceExample
+	url = https://github.com/YongjiaXu/UserInterfaceExample.git
