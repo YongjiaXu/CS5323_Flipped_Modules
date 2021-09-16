@@ -31,14 +31,18 @@ class ViewController: UIViewController {
                         shouldNormalize: true,
                         numPointsInGraph: AUDIO_BUFFER_SIZE/2)
         
+        graph?.addGraph(withName: "fft_zoomed",
+                        shouldNormalize: true,
+                        numPointsInGraph: 20)
+        
         graph?.addGraph(withName: "time",
             shouldNormalize: false,
             numPointsInGraph: AUDIO_BUFFER_SIZE)
         
         // just start up the audio model here
         
-        //#################### For Question 3, uncomment line 41 and comment 42&43
-        //audio.startProcesingAudioFileForPlayback(withFps: 10)
+        //#################### For Question 3, uncomment line 45 and comment 46&47
+//        audio.startProcesingAudioFileForPlayback(withFps: 10)
         audio.startMicrophoneProcessing(withFps: 10)
         audio.startProcessingSinewaveForPlayback(withFreq: 630.0)
         audio.play()
@@ -64,6 +68,11 @@ class ViewController: UIViewController {
         self.graph?.updateGraph(
             data: self.audio.fftData,
             forKey: "fft"
+        )
+        
+        self.graph?.updateGraph(
+            data: self.audio.fftData_zoomed,
+            forKey: "fft_zoomed"
         )
         
         self.graph?.updateGraph(
