@@ -35,11 +35,18 @@ class AudioModel {
                             repeats: true)
     }
     
+    
     // public function for playing from a file reader file
-    func startProcesingAudioFileForPlayback(){
+    func startProcesingAudioFileForPlayback(withFps:Double){
         self.audioManager?.outputBlock = self.handleSpeakerQueryWithAudioFile
         self.fileReader?.play()
+        Timer.scheduledTimer(timeInterval: 1.0/withFps, target: self,
+                            selector: #selector(self.runEveryInterval2),
+                            userInfo: nil,
+                            repeats: true)
+        
     }
+    
     
     func startProcessingSinewaveForPlayback(withFreq:Float=330.0){
         sineFrequency = withFreq
@@ -54,6 +61,14 @@ class AudioModel {
     func play(){
         self.audioManager?.play()
     }
+    
+    
+    func pause(){
+        self.audioManager?.pause()
+        self.audioManager?.inputBlock = nil
+        self.audioManager?.outputBlock = nil
+    }
+    
     
     // Here is an example function for getting the maximum frequency
     func getMaxFrequencyMagnitude() -> (Float,Float){
@@ -131,6 +146,20 @@ class AudioModel {
     }
     
    
+    @objc
+    private func runEveryInterval2(){
+        if outputBuffer != nil {
+            // copy data to swift array
+            //self.inputBuffer!.fetchFreshData(&timeData, withNumSamples: Int64(BUFFER_SIZE))
+            self.outputBuffer!.fetchFreshData(&timeData, withNumSamples: Int64(BUFFER_SIZE))
+            
+            // now take FFT and display it
+            fftHelper!.performForwardFFT(withData: &timeData,
+                                         andCopydBMagnitudeToBuffer: &fftData)
+            
+            
+        }
+    }
     
     //==========================================
     // MARK: Audiocard Callbacks

@@ -36,8 +36,10 @@ class ViewController: UIViewController {
             numPointsInGraph: AUDIO_BUFFER_SIZE)
         
         // just start up the audio model here
+        
+        //#################### For Question 3, uncomment line 41 and comment 42&43
+        //audio.startProcesingAudioFileForPlayback(withFps: 10)
         audio.startMicrophoneProcessing(withFps: 10)
-        //audio.startProcesingAudioFileForPlayback()
         audio.startProcessingSinewaveForPlayback(withFreq: 630.0)
         audio.play()
         
@@ -47,6 +49,13 @@ class ViewController: UIViewController {
             userInfo: nil,
             repeats: true)
        
+    }
+    
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        audio.pause()
+        print("paused")
     }
     
     
