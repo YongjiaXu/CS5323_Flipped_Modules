@@ -15,6 +15,7 @@ class AudioModel {
     private var BUFFER_SIZE:Int
     var timeData:[Float]
     var fftData:[Float]
+    var fftData_zoomed:[Float]
     
     // MARK: Public Methods
     init(buffer_size:Int) {
@@ -22,6 +23,7 @@ class AudioModel {
         // anything not lazily instatntiated should be allocated here
         timeData = Array.init(repeating: 0.0, count: BUFFER_SIZE)
         fftData = Array.init(repeating: 0.0, count: BUFFER_SIZE/2)
+        fftData_zoomed = Array.init(repeating: 0.0, count: 20)
     }
     
     // public function for starting processing of microphone data
@@ -141,7 +143,31 @@ class AudioModel {
             fftHelper!.performForwardFFT(withData: &timeData,
                                          andCopydBMagnitudeToBuffer: &fftData)
             
-            
+            findMax20()
+        }
+    }
+    
+    @objc
+    private func findMax20(){
+        var pointPerInterval:Int = BUFFER_SIZE / 40;
+        var counter = 0;
+        var max:Float = -1000.0;
+        var index = 0
+        
+        for i in 0..<Int(fftData.count) {
+            if fftData[i] > max {
+                max = fftData[i]
+            }
+            counter += 1
+            if counter == pointPerInterval {
+                fftData_zoomed[index] = max
+                if index == 19 {
+                    break
+                }
+                index += 1
+                max = -1000
+                counter = 0
+            }
         }
     }
     
@@ -157,7 +183,7 @@ class AudioModel {
             fftHelper!.performForwardFFT(withData: &timeData,
                                          andCopydBMagnitudeToBuffer: &fftData)
             
-            
+            findMax20()
         }
     }
     
