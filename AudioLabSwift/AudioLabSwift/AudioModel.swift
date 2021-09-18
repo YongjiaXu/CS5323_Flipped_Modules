@@ -149,7 +149,7 @@ class AudioModel {
     
     @objc
     private func findMax20(){
-        var pointPerInterval:Int = BUFFER_SIZE / 40;
+        let pointPerInterval:Int = BUFFER_SIZE / 40;
         var counter = 0;
         var max:Float = -1000.0;
         var index = 0

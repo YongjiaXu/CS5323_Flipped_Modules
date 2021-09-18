@@ -112,11 +112,14 @@ static pthread_mutex_t outputAudioFileLock;
         _outputBlock = nil;
 		_inputBlock	= nil;
         
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        self.samplingRate = session.sampleRate;
+        
         // Initialize a float buffer to hold audio
 		_inData  = (float *)calloc(8192, sizeof(float)); // probably more than we'll need
         _outData = (float *)calloc(8192, sizeof(float));
         
-        _outputBuffer = (float *)calloc(2*44100.0, sizeof(float));
+        _outputBuffer = (float *)calloc(2*self.samplingRate, sizeof(float));
         pthread_mutex_init(&outputAudioFileLock, NULL);
         
         _playing = NO;
@@ -362,11 +365,12 @@ static pthread_mutex_t outputAudioFileLock;
     
     // Set the buffer size, this will affect the number of samples that get rendered every time the audio callback is fired
     // A small number will get you lower latency audio, but will make your processor work harder
-#if !TARGET_IPHONE_SIMULATOR
-    Float32 preferredBufferSize = 0.0232;
+//#if !TARGET_IPHONE_SIMULATOR
+    Float32 preferredBufferSize = 1024/self.samplingRate; // 1024/44100 = 0.0232
     [session setPreferredIOBufferDuration:preferredBufferSize error:&error];
+    [session setPreferredSampleRate: self.samplingRate error:&error];
     //CheckError( AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize), "Couldn't set the preferred buffer duration");
-#endif
+//#endif
 
     
     [self checkSessionProperties];
@@ -420,8 +424,8 @@ static pthread_mutex_t outputAudioFileLock;
                                      &size ), 
                "Couldn't get the hardware output stream format");
     
-    _inputFormat.mSampleRate = 44100.0;
-    _outputFormat.mSampleRate = 44100.0;
+    _inputFormat.mSampleRate = self.samplingRate;
+    _outputFormat.mSampleRate = self.samplingRate;
     self.samplingRate = _inputFormat.mSampleRate;
     self.numBytesPerSample = _inputFormat.mBitsPerChannel / 8;
     
@@ -605,6 +609,7 @@ OSStatus inputCallback   (void						*inRefCon,
     
 	Novocaine *sm = (__bridge Novocaine *)inRefCon;
     
+    // setup rendering callback
     if (!sm.playing)
         return noErr;
     if (sm.inputBlock == nil)
@@ -619,7 +624,8 @@ OSStatus inputCallback   (void						*inRefCon,
     if( inNumberFrames == 471 )
         inNumberFrames = 470;
 #endif
-    CheckError( AudioUnitRender(sm.inputUnit, ioActionFlags, inTimeStamp, inOutputBusNumber, inNumberFrames, sm.inputBuffer), "Couldn't render the output unit");
+    // NSLog(@"Frames: %d",inNumberFrames); // had some weird stuff going on
+    CheckError( AudioUnitRender(sm.inputUnit, ioActionFlags, inTimeStamp, inOutputBusNumber, inNumberFrames, sm.inputBuffer), "Couldn't render the audio unit");
     
     
     // Convert the audio in something manageable
@@ -816,7 +822,7 @@ void sessionPropertyListener(void *                  inClientData,
     
     
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    
+
     //CheckError( AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &propertySize, &route), "Couldn't check the audio route");
     //self.inputRoute = (NSString *)route;
     //CFRelease(route);
@@ -856,8 +862,6 @@ void sessionPropertyListener(void *                  inClientData,
     
     
     // Get the hardware sampling rate. This is settable, but here we're only reading.
-
-    self.samplingRate = session.sampleRate;
     NSLog(@"Current sampling rate: %f", self.samplingRate);
 	
 }
@@ -950,7 +954,7 @@ void CheckError(OSStatus error, const char *operation)
     
     
     AudioStreamBasicDescription audioFormat;
-    audioFormat.mSampleRate = 44100;
+    audioFormat.mSampleRate = self.samplingRate;
     audioFormat.mFormatID = kAudioFormatLinearPCM;
     audioFormat.mFormatFlags = kLinearPCMFormatFlagIsFloat;
     audioFormat.mBitsPerChannel = sizeof(Float32) * 8;
@@ -1085,7 +1089,7 @@ void CheckError(OSStatus error, const char *operation)
     
     AudioStreamBasicDescription audioFormat;
     
-    AudioStreamBasicDescription outputFileDesc = {44100.0,  kAudioFormatMPEG4AAC, 0, 0, 1024, 0, self.numInputChannels, 0, 0};
+    AudioStreamBasicDescription outputFileDesc = {self.samplingRate,  kAudioFormatMPEG4AAC, 0, 0, 1024, 0, self.numInputChannels, 0, 0};
     
     CheckError(ExtAudioFileCreateWithURL(outputFileURL, kAudioFileM4AType, &outputFileDesc, NULL, kAudioFileFlags_EraseFile, &_audioFileRefOutput), "Creating file");
     
