@@ -1,0 +1,7 @@
+Group Members:
+Yongjia Xu
+James Zhai
+John Zhang
+
+Q: Given that each float array is 100 points: how many milliseconds of data has been collected?
+A: For each second, the OpenCV and the camera will capture around 25 frames. So filling a 100-point array (100 frames) will collect around 4 seconds, or 4000 milliseconds.
