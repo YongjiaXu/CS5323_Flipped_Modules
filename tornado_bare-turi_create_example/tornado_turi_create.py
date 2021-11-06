@@ -38,6 +38,7 @@ class Application(tornado.web.Application):
                     (r"/Handlers[/]?",        th.PrintHandlers),
                     (r"/AddDataPoint[/]?",    th.UploadLabeledDatapointHandler),
                     (r"/GetNewDatasetId[/]?", th.RequestNewDatasetId),
+                    (r"/GetMaxDatasetId[/]?", th.GetMaxDatasetId),
                     (r"/UpdateModel[/]?",     th.UpdateModelForDatasetId),     
                     (r"/PredictOne[/]?",      th.PredictOneFromDatasetId),  
                     (r"/GetExample[/]?",      eh.TestHandler),

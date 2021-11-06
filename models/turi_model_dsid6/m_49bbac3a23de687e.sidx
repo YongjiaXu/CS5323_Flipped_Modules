@@ -1,0 +1,10 @@
+{
+	"sarray" : {
+		"version" : 2,
+		"num_segments" : 1
+	},
+	"segment_files" : {
+		"0000" : "m_49bbac3a23de687e.0000"
+	},
+	"columns" : []
+}

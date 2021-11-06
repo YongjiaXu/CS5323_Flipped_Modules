@@ -15,8 +15,8 @@
 //    ifconfig |grep inet   
 // to see what your public facing IP address is, the ip address can be used here
 //let SERVER_URL = "http://erics-macbook-pro.local:8000" // change this for your server name!!!
-let SERVER_URL = "http://10.8.96.173:8000" // change this for your server name!!!
-// Yongjia Xu IP: 10.8.96.173
+let SERVER_URL = "http://10.9.165.78:8000" // change this for your server name!!!
+
 import UIKit
 import CoreMotion
 
@@ -48,12 +48,17 @@ class ViewController: UIViewController, URLSessionDelegate {
     
     var isWaitingForMotionData = false
     
+    @IBOutlet weak var stepper: UIStepper!
     @IBOutlet weak var dsidLabel: UILabel!
     @IBOutlet weak var upArrow: UILabel!
     @IBOutlet weak var rightArrow: UILabel!
     @IBOutlet weak var downArrow: UILabel!
     @IBOutlet weak var leftArrow: UILabel!
     @IBOutlet weak var largeMotionMagnitude: UIProgressView!
+    
+    @IBAction func stepperValueChanged(_ sender: UIStepper) {
+        self.dsid = Int(sender.value)
+    }
     
     // MARK: Class Properties with Observers
     enum CalibrationStage {
@@ -280,7 +285,6 @@ class ViewController: UIViewController, URLSessionDelegate {
                 }
                 
         })
-        
         dataTask.resume() // start the task
         
     }
@@ -357,10 +361,10 @@ class ViewController: UIViewController, URLSessionDelegate {
                         else{ // no error we are aware of
                             let jsonDictionary = self.convertDataToDictionary(with: data)
                             
-                            let labelResponse = jsonDictionary["prediction"]!
-                            print(labelResponse)
-                            self.displayLabelResponse(labelResponse as! String)
-
+                            if let labelResponse = jsonDictionary["prediction"]{
+                                print(labelResponse)
+                                self.displayLabelResponse(labelResponse as! String)
+                            }
                         }
                                                                     
         })

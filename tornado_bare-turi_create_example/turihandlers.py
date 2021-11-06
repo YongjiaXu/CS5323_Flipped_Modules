@@ -55,6 +55,18 @@ class RequestNewDatasetId(BaseHandler):
             newSessionId = float(a['dsid'])+1
         self.write_json({"dsid":newSessionId})
 
+class GetMaxDatasetId(BaseHandler):
+    def get(self):
+        '''Get a new dataset ID for building a new dataset
+        '''
+        a = self.db.labeledinstances.find_one(sort=[("dsid", -1)])
+        print(a)
+        if a == None:
+            maxId = 1
+        else:
+            maxId = float(a['dsid'])
+        self.write_json({"dsid":maxId})
+
 class UpdateModelForDatasetId(BaseHandler):
     def get(self):
         '''Train a new model (or update) for given dataset ID
@@ -105,7 +117,7 @@ class PredictOneFromDatasetId(BaseHandler):
 
         # load the model from the database (using pickle)
         # we are blocking tornado!! no!!
-        if dsid in self.clf:            # If that key does not exist, print a message and return
+        if dsid not in self.clf:            # If that key does not exist, print a message and return
             self.write("Model does not exist")
             return
 
