@@ -1,0 +1,10 @@
+Group Members:
+Yongjia Xu
+James Zhai
+John Zhang
+
+Q:  Is the current method of saving the classifier blocking to the tornado IOLoop? Justify your response.
+A: Yes. Because IOLoop is constantly checking the server and looking for connection. However, if the training takes a while, but IOLoop needs to take in the next connection, it is blocking the IOLoop. Loading the model might also take a while.
+
+Q: Would the models saved on one server be useable by another server if we migrated the saved documents in MongoDB? Justify your response.
+A: No. Because the server is currently local and the app needs to connect to the same server. If the servers are different, it won't be able to make the connection.

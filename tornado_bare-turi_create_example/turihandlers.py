@@ -114,15 +114,18 @@ class PredictOneFromDatasetId(BaseHandler):
         data = json.loads(self.request.body.decode("utf-8"))
         fvals = self.get_features_as_SFrame(data['feature'])
         dsid  = data['dsid']
-
+        data = self.get_features_and_labels_as_SFrame(dsid)
         # load the model from the database (using pickle)
         # we are blocking tornado!! no!!
         if dsid not in self.clf:            # If that key does not exist, print a message and return
-            self.write("Model does not exist")
-            # self.clf[dsid] = []             # Make it a new key/value pair, add it to the dict
-            return
-
-
+            self.write("Model does not exist in clf, saving new dsid\n")
+            model = tc.classifier.create(data,target='target',verbose=0)# training
+            yhat = model.predict(data)
+            self.clf[dsid] = model
+            acc = sum(yhat==data['target'])/float(len(data))
+            # save model for use later, if desired
+            model.save('../models/turi_model_dsid%d'%(dsid))
+    
         predLabel = self.clf[dsid].predict(fvals);   # If exist, use that model to do the predict
         self.write_json({"prediction":str(predLabel)})
 
@@ -134,6 +137,20 @@ class PredictOneFromDatasetId(BaseHandler):
         tmp = np.array(tmp)
         tmp = tmp.reshape((1,-1))
         data = {'sequence':tmp}
+
+        # send back the SFrame of the data
+        return tc.SFrame(data=data)
+
+    def get_features_and_labels_as_SFrame(self, dsid):
+        # create feature vectors from array input
+        # convert to dictionary of arrays for tc
+        features = []
+        labels = []
+        for a in self.db.labeledinstances.find({"dsid": dsid}):
+            features.append([float(val) for val in a['feature']])
+            labels.append(a['label'])
+
+        data = {'target': labels, 'sequence': np.array(features)}
 
         # send back the SFrame of the data
         return tc.SFrame(data=data)
