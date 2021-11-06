@@ -62,7 +62,7 @@ class Application(tornado.web.Application):
             print('   something like $./mongod --dbpath "/data/db"')
             #raise inst
         
-        self.clf = {} #  make clf an empty dictionary instead of a list
+        self.clf = {}    #  make clf an empty dictionary instead of a list
 
         settings = {'debug':True}
         tornado.web.Application.__init__(self, handlers, **settings)

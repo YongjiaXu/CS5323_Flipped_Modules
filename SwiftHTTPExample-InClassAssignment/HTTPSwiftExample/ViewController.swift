@@ -15,7 +15,7 @@
 //    ifconfig |grep inet   
 // to see what your public facing IP address is, the ip address can be used here
 //let SERVER_URL = "http://erics-macbook-pro.local:8000" // change this for your server name!!!
-let SERVER_URL = "http://10.9.165.78:8000" // change this for your server name!!!
+let SERVER_URL = "http://169.254.21.9:8000" // change this for your server name!!!
 
 import UIKit
 import CoreMotion
@@ -45,6 +45,7 @@ class ViewController: UIViewController, URLSessionDelegate {
     
     var magValue = 0.1
     var isCalibrating = false
+    var maxdsid = 1
     
     var isWaitingForMotionData = false
     
@@ -58,7 +59,37 @@ class ViewController: UIViewController, URLSessionDelegate {
     
     @IBAction func stepperValueChanged(_ sender: UIStepper) {
         self.dsid = Int(sender.value)
+        
     }
+    
+    
+    func InitializeStepper(){       // Initialize the stepper's maximum value
+        let baseURL = "\(SERVER_URL)/GetMaxDatasetId"   // Get the maximum dsid=size
+        
+        let getUrl = URL(string: baseURL)
+        let request: URLRequest = URLRequest(url: getUrl!)
+        let dataTask : URLSessionDataTask = self.session.dataTask(with: request,
+            completionHandler:{(data, response, error) in
+                if(error != nil){
+                    print("Response:\n%@",response!)
+                }
+                else{
+                    let jsonDictionary = self.convertDataToDictionary(with: data)
+                    
+                    if let imaxdsid = jsonDictionary["dsid"]{       // If we got the dsid
+                        self.maxdsid = imaxdsid as! Int
+                        DispatchQueue.main.async{
+                            self.stepper.maximumValue = Double(self.maxdsid) // Set the stepper
+                        }
+                    }
+                    
+                    
+                }
+                
+        })
+        dataTask.resume() // start the task
+    }
+    
     
     // MARK: Class Properties with Observers
     enum CalibrationStage {
@@ -261,6 +292,7 @@ class ViewController: UIViewController, URLSessionDelegate {
         startMotionUpdates()
         
         dsid = 1 // set this and it will update UI
+        InitializeStepper()     // Call the function to initialize the stepper
     }
 
     //MARK: Get New Dataset ID
@@ -280,7 +312,11 @@ class ViewController: UIViewController, URLSessionDelegate {
                     
                     // This better be an integer
                     if let dsid = jsonDictionary["dsid"]{
-                        self.dsid = dsid as! Int
+                        self.dsid = dsid as! Int        // update the dsid
+                        DispatchQueue.main.async{
+                        self.maxdsid = dsid as! Int    // It is the maximum stepper
+                        self.stepper.maximumValue = Double(self.maxdsid) // Set the stepper
+                        }
                     }
                 }
                 

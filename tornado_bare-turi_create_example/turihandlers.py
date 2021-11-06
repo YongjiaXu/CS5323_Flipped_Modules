@@ -119,10 +119,11 @@ class PredictOneFromDatasetId(BaseHandler):
         # we are blocking tornado!! no!!
         if dsid not in self.clf:            # If that key does not exist, print a message and return
             self.write("Model does not exist")
+            # self.clf[dsid] = []             # Make it a new key/value pair, add it to the dict
             return
 
 
-        predLabel = self.clf[dsid].predict(fvals);  # If exist, use that model to do the predict
+        predLabel = self.clf[dsid].predict(fvals);   # If exist, use that model to do the predict
         self.write_json({"prediction":str(predLabel)})
 
     def get_features_as_SFrame(self, vals):
